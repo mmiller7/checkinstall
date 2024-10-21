@@ -351,7 +351,7 @@ static void initialize(void) {
 
 	#ifdef BROKEN_RTLD_NEXT
 //        	printf ("RTLD_LAZY");
-        	libc_handle = dlopen(LIBC_VERSION, RTLD_LAZY);
+        	libc_handle = dlopen(LIBC_FILE, RTLD_LAZY);
 	#else
  //       	printf ("RTLD_NEXT");
         	libc_handle = RTLD_NEXT;
@@ -2553,6 +2553,8 @@ FILE *fopen(const char *pathname, const char *mode) {
 
 	if (!libc_handle)
 		initialize();
+
+        result = NULL;
 
 #if DEBUG
 	debug(2,"fopen(%s,%s)\n",pathname,mode);
