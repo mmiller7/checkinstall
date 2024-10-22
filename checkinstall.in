@@ -1597,7 +1597,7 @@ if [ $SHOW_INSTALL -eq 0 ]; then
 
    $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
    --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
-   $TMP_SCRIPT &> /${TMP_DIR}/install.log
+   $TMP_SCRIPT &> ${TMP_DIR}/install.log
 
    okfail
    INSTALL_FAILED=$?
@@ -1635,7 +1635,7 @@ if [ $SHOW_INSTALL -eq 0 ]; then
 
       (echo
        echogn ' ***************************************************************\n         Installation results. You can find them in\n       %s\n ***************************************************************\n' "${TMP_DIR}/install.log"
-       cat /${TMP_DIR}/install.log)  | $PAGER
+       cat ${TMP_DIR}/install.log)  | $PAGER
    fi
 fi
 
@@ -1684,30 +1684,30 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	# Find regular files first
 	[ $DEBUG -gt 0 ] && echo "debug: BASE_TMP_DIR: $BASE_TMP_DIR"
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > /${TMP_DIR}/newfiles
+	cat ${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > ${TMP_DIR}/newfiles
 
 	# symlinks are next
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> /${TMP_DIR}/newfiles
+	cat ${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> ${TMP_DIR}/newfiles
         # Create another list of modified files that exclude all files the
         # install script wanted to create but did not, e.g because they already
         # existed.
-        egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 3 | sort -u \
-            >/${TMP_DIR}/modified
-        egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 4 \
-            | egrep -v "#success" | sort -u >> /${TMP_DIR}/modified
+        egrep "#success$" ${TMP_DIR}/newfiles.tmp | cut -f 3 | sort -u \
+            >${TMP_DIR}/modified
+        egrep "#success$" ${TMP_DIR}/newfiles.tmp | cut -f 4 \
+            | egrep -v "#success" | sort -u >> ${TMP_DIR}/modified
 
 	# OK, now we clean it up a bit
-	mv /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles.installwatch
-	sort -u <  /${TMP_DIR}/newfiles | uniq  | while read file; do
+	mv ${TMP_DIR}/newfiles.tmp ${TMP_DIR}/newfiles.installwatch
+	sort -u <  ${TMP_DIR}/newfiles | uniq  | while read file; do
 	   if [ -e "${TRANSLROOT}${file}" ]; then
-	      echo $file >> /${TMP_DIR}/newfiles.tmp
+	      echo $file >> ${TMP_DIR}/newfiles.tmp
 	   else
 	      FILE_SYM=`file "${TRANSLROOT}${file}" | grep 'symbolic link'`
-	      [ "${FILE_SYM}" != "" ] && echo $file >> /${TMP_DIR}/newfiles.tmp
+	      [ "${FILE_SYM}" != "" ] && echo $file >> ${TMP_DIR}/newfiles.tmp
 	   fi
 	done
 
-	cp /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles
+	cp ${TMP_DIR}/newfiles.tmp ${TMP_DIR}/newfiles
 
 	# Don't include anything under the directories specified with "--exclude"
 
@@ -1715,17 +1715,17 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	for exclude in `echo $EXCLUDE | awk '{ split ($0, files,","); for(i=1; files[i] != ""; i++) print files[i];}'`; do
 	   if [ -d $exclude ]; then  # If it's a directory, ignore everything below it
-	      egrep -v "^$exclude" < /${TMP_DIR}/newfiles > /${TMP_DIR}/newfiles.tmp
+	      egrep -v "^$exclude" < ${TMP_DIR}/newfiles > ${TMP_DIR}/newfiles.tmp
 	   else
 	      if [ -f $exclude ]; then  # If it's a file, ignore just this one
-		 egrep -v "^$exclude$" < /${TMP_DIR}/newfiles > /${TMP_DIR}/newfiles.tmp
+		 egrep -v "^$exclude$" < ${TMP_DIR}/newfiles > ${TMP_DIR}/newfiles.tmp
 	      fi
 	   fi
-	   cp /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles
+	   cp ${TMP_DIR}/newfiles.tmp ${TMP_DIR}/newfiles
 	done
 
 	# Find files created under /home
-	grep '^/home' ${TMP_DIR}/newfiles > /${TMP_DIR}/unwanted
+	grep '^/home' ${TMP_DIR}/newfiles > ${TMP_DIR}/unwanted
 	if [ $? -eq 0 ]; then
 	   echo
 	   echog "Some of the files created by the installation are inside the home directory: /home"
@@ -1743,7 +1743,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	## Find any files created in `pwd`. We probably don't want them here
 
-	grep "^`pwd`" ${TMP_DIR}/newfiles > /${TMP_DIR}/unwanted 
+	grep "^`pwd`" ${TMP_DIR}/newfiles > ${TMP_DIR}/unwanted 
 	if [ $? = 0 ]; then 
 	   echo
 	   echog "Some of the files created by the installation are inside the build\ndirectory: %s" "`pwd`"
@@ -1754,8 +1754,8 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	   fi
 	   echogn "Should I exclude them from the package? (Saying yes is a good idea) "
 	   if  yorn ; then
-	      grep -v "`pwd`" ${TMP_DIR}/newfiles > /${TMP_DIR}/newfiles.tmp
-	      mv /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles
+	      grep -v "`pwd`" ${TMP_DIR}/newfiles > ${TMP_DIR}/newfiles.tmp
+	      mv ${TMP_DIR}/newfiles.tmp ${TMP_DIR}/newfiles
 	   fi
 	fi
 
@@ -1769,9 +1769,9 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	   $VISUAL ${TMP_DIR}/newfiles
 
 	   # Check if new files were added by the user
-	   cat /${TMP_DIR}/newfiles | while read file; do 
+	   cat ${TMP_DIR}/newfiles | while read file; do 
 	      if ! [ -e "${TRANSLROOT}${file}" ]; then
-		  copy_dir_hierarchy --deref-parents "${file}" "/" "${BUILD_DIR}" >> /${TMP_DIR}/updated-by-user.log 2>&1
+		  copy_dir_hierarchy --deref-parents "${file}" "/" "${BUILD_DIR}" >> ${TMP_DIR}/updated-by-user.log 2>&1
 	      fi
 	   done
 
@@ -1786,11 +1786,11 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	cd /
 
-	( cat /${TMP_DIR}/newfiles | while read i; do 
+	( cat ${TMP_DIR}/newfiles | while read i; do 
 	      if [ ! -d "${TRANSLROOT}${i}" -o -L "${TRANSLROOT}${i}" ]; then
 	      echo ".${i}"
 	   fi
-	done ) > /${TMP_DIR}/newfiles-tar
+	done ) > ${TMP_DIR}/newfiles-tar
 
         # Here it gets tricky: we need to copy all new files to our build dir,
         # keeping permissions as they are for parents directories as well as for
@@ -1798,9 +1798,9 @@ if [ $INSTALL_FAILED -gt 0 ]; then
         # dereference them only if they were not modified by the installation
         # script. 
         NEWFILES="${TMP_DIR}/modified"
-        LOGFILE="/${TMP_DIR}/checkinstall.log"
+        LOGFILE="${TMP_DIR}/checkinstall.log"
 
- 	cat /${TMP_DIR}/newfiles-tar | while read file; do
+ 	cat ${TMP_DIR}/newfiles-tar | while read file; do
             parents=`list_parents ${file} | sed s/^\.//`
             for p in $parents; do
             # We have to remove the ./ at the beginning
