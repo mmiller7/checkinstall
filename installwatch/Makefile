@@ -11,7 +11,7 @@ PREFIX=/usr/local
 VERSION=0.7.0beta7
 
 BINDIR=$(PREFIX)/bin
-LIBDIR=$(PREFIX)/lib
+LIBDIR=$(PREFIX)/lib64
 
 all: installwatch.so
 
